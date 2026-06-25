@@ -678,9 +678,9 @@ function confirmSel(){
   // 强制校验选房顺序：必须是当前类别下一位
   const no=nextOrder(cat);
   if(p.o!==no){
-    const ahead=PEOPLE[cat].filter(pp=>pp.o<no&&!isPersonSelected(cat,pp.o));
+    const ahead=PEOPLE[cat].filter(pp=>pp.o<p.o&&!isPersonSelected(cat,pp.o));
     const names=ahead.map(x=>x.o+'.'+x.n).join('、');
-    toast('❌ 无法操作！还有'+ahead.length+'人未选：'+names);return;
+    toast('❌ 未轮到！需先选：'+names);return;
   }
   
   if(!sel[cat])sel[cat]={};
