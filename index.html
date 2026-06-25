@@ -135,6 +135,44 @@ body{font-family:-apple-system,BlinkMacSystemFont,'PingFang SC','Microsoft YaHei
   <div class="sub">抽签已完成 · 按序选房 · 实时更新</div>
 </div>
 
+<!-- 操作说明 -->
+<div style="background:linear-gradient(135deg,#e6f4ff,#f0f5ff);border-radius:12px;padding:14px;margin-bottom:12px;border:1px solid #bae0ff">
+  <div onclick="this.nextElementSibling.style.display=this.nextElementSibling.style.display==='none'?'block':'none'" style="cursor:pointer;display:flex;justify-content:space-between;align-items:center">
+    <span style="font-size:15px;font-weight:700">📖 操作说明（点击展开/收起）</span>
+    <span style="font-size:12px;color:var(--primary)">▼</span>
+  </div>
+  <div style="display:none;margin-top:10px;font-size:12px;line-height:1.8;color:#333">
+    <div style="background:#fff;border-radius:8px;padding:10px;margin-bottom:8px">
+      <div style="font-weight:700;color:var(--primary);margin-bottom:4px">🔐 选房规则</div>
+      <div>• <b>严格按抽签序号顺序</b>：每类宿舍区（怀柔男/女、中关村男/女）独立排序</div>
+      <div>• 系统自动校验轮次：<b>必须前面所有人都选完，才能轮到你</b></div>
+      <div>• 同一人<b>不能重复选房</b>，如需换房需先移除再重新选</div>
+      <div>• 绿色🟢=空房 🟡=有人 🔴=已满</div>
+    </div>
+    <div style="background:#fff;border-radius:8px;padding:10px;margin-bottom:8px">
+      <div style="font-weight:700;color:var(--primary);margin-bottom:4px">📝 录入选房操作</div>
+      <div>1. 点击右下角 <b>✏️ 按钮</b> 打开录入面板</div>
+      <div>2. 输入 <b>抽签序号</b>（1-184），系统自动识别姓名和类别</div>
+      <div>3. 选择 <b>目标房间</b>（只能选本类别的房间）</div>
+      <div>4. 点击 <b>✅ 确认选房</b>，房间状态立即更新</div>
+      <div>⚠️ 由<b>一位协调员</b>统一操作录入，其他人查看即可</div>
+    </div>
+    <div style="background:#fff;border-radius:8px;padding:10px;margin-bottom:8px">
+      <div style="font-weight:700;color:var(--primary);margin-bottom:4px">📤 数据导出/导入（重要！）</div>
+      <div>• <b>导出</b>：点击页面底部「📤 导出状态」→ 自动复制一段编码到剪贴板</div>
+      <div>• <b>导入</b>：点击「📥 导入状态」→ 粘贴编码 → 数据恢复</div>
+      <div>• <b>用途</b>：换设备/清缓存后可恢复选房进度</div>
+      <div>• ⚠️ 数据存在<b>浏览器本地</b>，清除缓存会丢失，务必定期导出备份！</div>
+    </div>
+    <div style="background:#fff7e6;border-radius:8px;padding:10px;border:1px solid #ffd591">
+      <div style="font-weight:700;color:#d46b08;margin-bottom:4px">⚠️ 特殊说明</div>
+      <div>• 220客厅（怀柔男）：已有1人入住，仅剩1床位</div>
+      <div>• G520/G1113/G2515（中关村女）：与外单位合住，8月中旬入住</div>
+      <div>• G楼所有房间均为8月中旬入住</div>
+    </div>
+  </div>
+</div>
+
 <div class="stats" id="statsBar"></div>
 <div class="pbar" id="progressBar"></div>
 <div class="tabs" id="tabs"></div>
