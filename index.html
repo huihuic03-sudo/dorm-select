@@ -150,18 +150,23 @@ body{font-family:-apple-system,BlinkMacSystemFont,'PingFang SC','Microsoft YaHei
       <div>• 绿色🟢=空房 🟡=有人 🔴=已满</div>
     </div>
     <div style="background:#fff;border-radius:8px;padding:10px;margin-bottom:8px">
-      <div style="font-weight:700;color:var(--primary);margin-bottom:4px">📝 录入选房操作</div>
+      <div style="font-weight:700;color:var(--primary);margin-bottom:4px">📝 选房操作（每人可自行操作）</div>
       <div>1. 点击右下角 <b>✏️ 按钮</b> 打开录入面板</div>
       <div>2. 输入 <b>抽签序号</b>（1-184），系统自动识别姓名和类别</div>
-      <div>3. 选择 <b>目标房间</b>（只能选本类别的房间）</div>
+      <div>3. 选择 <b>目标房间</b>（只能选本类别的房间，且必须按顺序）</div>
       <div>4. 点击 <b>✅ 确认选房</b>，房间状态立即更新</div>
-      <div>⚠️ 由<b>一位协调员</b>统一操作录入，其他人查看即可</div>
+      <div>✅ <b>不需要密码</b>，按顺序即可自行选房</div>
+    </div>
+    <div style="background:#fff;border-radius:8px;padding:10px;margin-bottom:8px">
+      <div style="font-weight:700;color:var(--danger);margin-bottom:4px">🔒 管理员操作（需要密码）</div>
+      <div>• <b>删除选房</b>（移除某人的选房记录）→ 需要密码</div>
+      <div>• <b>撤销操作</b>（撤销上一步）→ 需要密码</div>
+      <div>• 密码：<b>2026fangjian</b></div>
     </div>
     <div style="background:#fff;border-radius:8px;padding:10px;margin-bottom:8px">
       <div style="font-weight:700;color:var(--primary);margin-bottom:4px">📤 数据导出/导入（重要！）</div>
-      <div>• <b>导出</b>：点击页面底部「📤 导出状态」→ 自动复制一段编码到剪贴板</div>
-      <div>• <b>导入</b>：点击「📥 导入状态」→ 粘贴编码 → 数据恢复</div>
-      <div>• <b>用途</b>：换设备/清缓存后可恢复选房进度</div>
+      <div>• <b>导出</b>：点击「📤 导出状态」→ 复制到剪贴板，包含<b>清晰的文字记录</b>和备份编码</div>
+      <div>• <b>导入</b>：点击「📥 导入状态」→ 粘贴全部内容即可恢复</div>
       <div>• ⚠️ 数据存在<b>浏览器本地</b>，清除缓存会丢失，务必定期导出备份！</div>
     </div>
     <div style="background:#fff7e6;border-radius:8px;padding:10px;border:1px solid #ffd591">
@@ -190,7 +195,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,'PingFang SC','Microsoft YaHei
   <div class="ll" id="logList"><div class="li" style="justify-content:center;color:#999">暂无记录</div></div>
 </div>
 
-<button class="fab" onclick="adminAction()">✏️</button>
+<button class="fab" onclick="openModal()">✏️</button>
 
 <!-- Selection Modal -->
 <div class="mover" id="modalOverlay" onclick="if(event.target===this)closeModal()">
@@ -718,10 +723,27 @@ function undoLast(){
 // =================== EXPORT/IMPORT ===================
 function exportState(){
   try{
+    // 生成清晰的可读格式
+    let txt='【2026住宿选房系统 - 数据导出】\n导出时间：'+new Date().toLocaleString('zh-CN')+'\n\n';
+    let total=0;
+    for(const cat of CAT_ORDER){
+      const rooms=sel[cat]||{};
+      const entries=Object.entries(rooms);
+      if(!entries.length)continue;
+      txt+='━━━ '+cat+' ━━━\n';
+      for(const[rn,occupants]of entries){
+        for(const o of occupants){
+          txt+='  第'+o.order+'位 '+o.name+'（'+o.lotteryNo+'号）→ '+o.roomNo+' ['+o.time+'录入]\n';
+          total++;
+        }
+      }
+      txt+='\n';
+    }
+    txt+='━━━━━━━━━━\n共选房 '+total+' 人\n\n';
+    txt+='【备份数据】（导入时使用）\n';
     const data=JSON.stringify({sel,log});
-    const compressed=btoa(unescape(encodeURIComponent(data)));
-    // Copy to clipboard
-    navigator.clipboard.writeText(compressed).then(()=>toast('✅ 状态已复制到剪贴板'));
+    txt+=btoa(unescape(encodeURIComponent(data)));
+    navigator.clipboard.writeText(txt).then(()=>toast('✅ 数据已复制到剪贴板'));
   }catch(e){toast('导出失败');}
 }
 
