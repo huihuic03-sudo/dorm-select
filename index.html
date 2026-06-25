@@ -1,0 +1,703 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0,maximum-scale=1.0,user-scalable=no">
+<title>🏠 2026 住宿选房系统</title>
+<style>
+:root{--bg:#f0f2f5;--card:#fff;--primary:#1677ff;--success:#52c41a;--warning:#faad14;--danger:#ff4d4f;--text:#1a1a2e;--text2:#666;--border:#e8e8e8;--shadow:0 2px 8px rgba(0,0,0,0.08);--r:12px}
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:-apple-system,BlinkMacSystemFont,'PingFang SC','Microsoft YaHei',sans-serif;background:var(--bg);color:var(--text);padding:12px;padding-bottom:90px;min-height:100vh}
+
+/* Header */
+.hdr{text-align:center;padding:16px 0 8px}
+.hdr h1{font-size:20px;font-weight:700}
+.hdr .sub{font-size:12px;color:var(--text2);margin-top:2px}
+
+/* Stats */
+.stats{display:grid;grid-template-columns:repeat(4,1fr);gap:6px;margin-bottom:12px}
+.st{background:var(--card);border-radius:10px;padding:8px 4px;text-align:center;box-shadow:var(--shadow);cursor:pointer;transition:all .15s;border:2px solid transparent}
+.st:active{transform:scale(.96)}
+.st.on{border-color:var(--primary)}
+.st .l{font-size:10px;color:var(--text2)}
+.st .n{font-size:22px;font-weight:700;margin:2px 0}
+.st .t{font-size:10px;color:var(--text2)}
+.st.hzm{background:#e6f4ff}.st.hzf{background:#fff0f6}.st.zgm{background:#f6ffed}.st.zgf{background:#fff7e6}
+
+/* Progress */
+.pbar{display:flex;justify-content:center;margin-bottom:12px}
+.pbar .ring{width:56px;height:56px;border-radius:50%;background:conic-gradient(var(--primary) var(--pct),#e8e8e8 var(--pct));display:flex;align-items:center;justify-content:center;position:relative}
+.pbar .ring::after{content:'';width:40px;height:40px;border-radius:50%;background:var(--bg);position:absolute}
+.pbar .ring .inn{position:relative;z-index:1;font-size:13px;font-weight:700}
+.pbar .info{margin-left:12px;font-size:12px;color:var(--text2);display:flex;flex-direction:column;justify-content:center}
+
+/* Tabs */
+.tabs{display:flex;gap:6px;margin-bottom:12px;overflow-x:auto;padding-bottom:4px}
+.tab{flex:1;min-width:0;padding:8px 4px;border-radius:8px;text-align:center;font-size:12px;font-weight:600;cursor:pointer;transition:all .15s;white-space:nowrap}
+.tab:active{transform:scale(.96)}
+.tab.on{color:#fff;box-shadow:0 2px 6px rgba(0,0,0,.15)}
+.tab.t0{background:#bae0ff}.tab.t0.on{background:#1677ff}
+.tab.t1{background:#ffd6e7}.tab.t1.on{background:#eb2f96}
+.tab.t2{background:#d9f7be}.tab.t2.on{background:#52c41a}
+.tab.t3{background:#ffe7ba}.tab.t3.on{background:#fa8c16}
+
+/* Section */
+.sec{margin-bottom:12px;display:none}
+.sec.vis{display:block}
+.sec-hd{font-size:14px;font-weight:700;padding:10px 12px;border-radius:var(--r) var(--r) 0 0;display:flex;align-items:center;gap:6px}
+.sec-hd .badge{font-size:10px;padding:2px 8px;border-radius:8px;background:rgba(255,255,255,.5)}
+
+/* Room grid */
+.rgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(130px,1fr));gap:8px;padding:8px;background:var(--card);border-radius:0 0 var(--r) var(--r);box-shadow:var(--shadow)}
+.rcard{border-radius:8px;padding:8px;border:1px solid var(--border);text-align:center;cursor:pointer;transition:all .15s;position:relative}
+.rcard:active{transform:scale(.96)}
+.rcard .rno{font-size:13px;font-weight:700}
+.rcard .rtype{font-size:10px;color:var(--text2)}
+.rcard .rnote{font-size:9px;color:var(--warning);margin-top:2px}
+.rcard .obar{height:4px;border-radius:2px;background:#eee;margin:4px 0;overflow:hidden}
+.rcard .obar .fill{height:100%;border-radius:2px;transition:width .3s}
+.rcard .rnames{font-size:9px;color:var(--text2);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.rcard.avail{border-color:var(--success);background:#f6ffed}
+.rcard.partial{border-color:var(--warning);background:#fffbe6}
+.rcard.full{border-color:#d9d9d9;background:#fafafa;opacity:.65;cursor:default}
+.rcard .avail .obar .fill{background:var(--success)}
+.rcard.partial .obar .fill{background:var(--warning)}
+.rcard.full .obar .fill{background:#d9d9d9}
+
+/* People list */
+.plist{background:var(--card);border-radius:var(--r);box-shadow:var(--shadow);margin-top:8px;overflow:hidden}
+.plist .pl-hd{padding:10px 12px;font-size:13px;font-weight:600;border-bottom:1px solid var(--border);display:flex;justify-content:space-between;cursor:pointer}
+.plist .pl-body{display:none;max-height:300px;overflow-y:auto}
+.plist .pl-body.open{display:block}
+.pi{padding:6px 12px;font-size:12px;border-bottom:1px solid #f5f5f5;display:flex;justify-content:space-between;align-items:center}
+.pi .po{width:20px;height:20px;border-radius:50%;background:var(--primary);color:#fff;font-size:10px;font-weight:700;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.pi .pn{flex:1;margin-left:8px}
+.pi .ps{font-size:10px;color:var(--text2)}
+.pi.selected{background:#f6ffed}
+.pi.selected .po{background:var(--success)}
+.pi.done{opacity:.5}
+
+/* FAB */
+.fab{position:fixed;bottom:20px;right:20px;width:52px;height:52px;border-radius:50%;background:var(--primary);color:#fff;border:none;font-size:20px;box-shadow:0 4px 12px rgba(22,119,255,.4);cursor:pointer;z-index:100;display:flex;align-items:center;justify-content:center}
+.fab:active{transform:scale(.9)}
+
+/* Modal */
+.mover{display:none;position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:200;align-items:flex-end;justify-content:center}
+.mover.show{display:flex}
+.modal{background:#fff;border-radius:16px 16px 0 0;width:100%;max-width:500px;max-height:85vh;overflow-y:auto;padding:20px 16px 30px;animation:su .25s ease}
+@keyframes su{from{transform:translateY(100%)}to{transform:translateY(0)}}
+.modal h3{font-size:17px;margin-bottom:14px;text-align:center}
+.modal label{font-size:12px;display:block;margin-bottom:3px;color:var(--text2)}
+.modal input,.modal select{width:100%;padding:9px 10px;border:1px solid var(--border);border-radius:8px;font-size:14px;margin-bottom:10px;outline:none}
+.modal input:focus,.modal select:focus{border-color:var(--primary)}
+.modal .brow{display:flex;gap:8px;margin-top:14px}
+.modal .btn{flex:1;padding:11px;border-radius:8px;border:none;font-size:14px;font-weight:600;cursor:pointer}
+.modal .bp{background:var(--primary);color:#fff}
+.modal .bd{background:var(--danger);color:#fff}
+.modal .bg{background:#f5f5f5;color:var(--text)}
+
+/* Toast */
+.toast{position:fixed;top:16px;left:50%;transform:translateX(-50%);background:#1a1a2e;color:#fff;padding:8px 20px;border-radius:16px;font-size:13px;z-index:300;opacity:0;transition:opacity .3s;pointer-events:none}
+.toast.show{opacity:1}
+
+/* Log */
+.log{background:var(--card);border-radius:var(--r);box-shadow:var(--shadow);margin-top:12px;overflow:hidden}
+.log .lh{padding:8px 12px;font-size:13px;font-weight:600;border-bottom:1px solid var(--border);display:flex;justify-content:space-between;align-items:center}
+.log .ll{max-height:180px;overflow-y:auto}
+.log .li{padding:6px 12px;font-size:11px;border-bottom:1px solid #f5f5f5;display:flex;justify-content:space-between}
+.log .lt{color:#999;font-size:10px}
+.log .ubtn{font-size:10px;color:var(--danger);cursor:pointer;background:none;border:none;padding:2px 4px}
+
+/* Copy btn */
+.cbtn{padding:4px 10px;border-radius:6px;background:#f0f0f0;border:1px solid var(--border);font-size:11px;cursor:pointer}
+
+/* Room detail overlay */
+.rdetail{display:none;position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:250;align-items:center;justify-content:center;padding:16px}
+.rdetail.show{display:flex}
+.rdbox{background:#fff;border-radius:16px;width:100%;max-width:400px;padding:20px;animation:su .2s ease}
+.rdbox h4{font-size:16px;margin-bottom:12px}
+.rdbox .rdinfo{font-size:12px;color:var(--text2);margin-bottom:12px}
+.rdbox .rdocc{margin-bottom:12px}
+.rdbox .rdocc .rdo{padding:8px;background:#f6ffed;border-radius:8px;margin-bottom:6px;font-size:13px;display:flex;justify-content:space-between}
+.rdbox .rdempty{text-align:center;color:#999;font-size:13px;padding:12px}
+.rdbox .brow{display:flex;gap:8px;margin-top:12px}
+.rdbox .btn{flex:1;padding:10px;border-radius:8px;border:none;font-size:13px;font-weight:600;cursor:pointer}
+.rdbox .bp{background:var(--primary);color:#fff}
+.rdbox .bg{background:#f5f5f5;color:var(--text)}
+
+@media(max-width:360px){.rgrid{grid-template-columns:repeat(2,1fr)}.stats{grid-template-columns:repeat(2,1fr)}}
+</style>
+</head>
+<body>
+
+<div class="hdr">
+  <h1>🏠 2026 住宿选房系统</h1>
+  <div class="sub">抽签已完成 · 按序选房 · 实时更新</div>
+</div>
+
+<div class="stats" id="statsBar"></div>
+<div class="pbar" id="progressBar"></div>
+<div class="tabs" id="tabs"></div>
+<div id="zoneContent"></div>
+
+<div class="log">
+  <div class="lh">
+    📋 选房记录
+    <div>
+      <button class="ubtn" onclick="exportState()" style="color:var(--primary)">📤 导出状态</button>
+      <button class="ubtn" onclick="importState()" style="margin-left:6px;color:var(--primary)">📥 导入状态</button>
+      <button class="ubtn" onclick="undoLast()" id="undoBtn" style="display:none;margin-left:6px">↩ 撤销</button>
+    </div>
+  </div>
+  <div class="ll" id="logList"><div class="li" style="justify-content:center;color:#999">暂无记录</div></div>
+</div>
+
+<button class="fab" onclick="openModal()">✏️</button>
+
+<!-- Selection Modal -->
+<div class="mover" id="modalOverlay" onclick="if(event.target===this)closeModal()">
+  <div class="modal">
+    <h3>✏️ 录入选房</h3>
+    <label>抽签序号</label>
+    <input type="number" id="lotteryNo" placeholder="输入 1-117" min="1" max="117" oninput="autoFill()">
+    <label>姓名</label>
+    <input type="text" id="personName" placeholder="输入姓名或序号后自动填充">
+    <div id="personInfo" style="font-size:11px;color:var(--text2);margin:-6px 0 10px"></div>
+    <label>宿舍区域</label>
+    <select id="zoneSelect" onchange="updateRooms()">
+      <option value="">-- 先选择或输入序号 --</option>
+      <option value="怀柔男">🏢 怀柔男（万户楼）</option>
+      <option value="怀柔女">🏢 怀柔女（万户楼/第二栋）</option>
+      <option value="中关村男">🏙️ 中关村男（青年公寓C/F/315楼/篮球场小楼）</option>
+      <option value="中关村女">🏙️ 中关村女（青年公寓A/B/G）</option>
+    </select>
+    <label>选择房间</label>
+    <select id="roomSelect" onchange="showRoomInfo()">
+      <option value="">-- 先选择区域 --</option>
+    </select>
+    <div id="roomInfo" style="font-size:11px;color:var(--text2);margin-bottom:8px"></div>
+    <div id="turnWarning" style="font-size:11px;color:var(--danger);margin-bottom:8px;display:none"></div>
+    <div class="brow">
+      <button class="btn bg" onclick="closeModal()">取消</button>
+      <button class="btn bp" onclick="confirmSel()">✅ 确认选房</button>
+    </div>
+    <div style="margin-top:16px;padding-top:12px;border-top:1px solid var(--border)">
+      <label style="color:var(--danger)">🗑️ 移除选房</label>
+      <select id="removeSelect" style="margin-bottom:6px"><option value="">-- 选择已选人员 --</option></select>
+      <button class="btn bd" onclick="removeSel()" style="width:100%">确认移除</button>
+    </div>
+  </div>
+</div>
+
+<!-- Room Detail -->
+<div class="rdetail" id="rdOverlay" onclick="if(event.target===this)closeRD()">
+  <div class="rdbox" id="rdBox"></div>
+</div>
+
+<!-- Import State Modal -->
+<div class="mover" id="importOverlay" onclick="if(event.target===this)closeImport()">
+  <div class="modal">
+    <h3>📥 导入状态</h3>
+    <label>粘贴状态字符串</label>
+    <textarea id="importText" style="width:100%;height:80px;padding:8px;border:1px solid var(--border);border-radius:8px;font-size:12px;resize:vertical" placeholder="粘贴之前导出的状态字符串..."></textarea>
+    <div class="brow">
+      <button class="btn bg" onclick="closeImport()">取消</button>
+      <button class="btn bp" onclick="doImport()">确认导入</button>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+// =================== DATA ===================
+const ROOMS = {
+  "中关村女": [
+    {roomNo:"A601",type:"双人间",cap:2,area:"中关村青年公寓",note:"",seq:[1,2]},
+    {roomNo:"A603",type:"双人间",cap:2,area:"中关村青年公寓",note:"",seq:[3,4]},
+    {roomNo:"A1010",type:"双人间",cap:2,area:"中关村青年公寓",note:"",seq:[5,6]},
+    {roomNo:"A1012",type:"双人间",cap:2,area:"中关村青年公寓",note:"",seq:[7,8]},
+    {roomNo:"A1217",type:"双人间",cap:2,area:"中关村青年公寓",note:"",seq:[9,10]},
+    {roomNo:"B1506",type:"双人间",cap:2,area:"中关村青年公寓",note:"",seq:[11,12]},
+    {roomNo:"B1513",type:"双人间",cap:2,area:"中关村青年公寓",note:"",seq:[13,14]},
+    {roomNo:"B1514",type:"双人间",cap:2,area:"中关村青年公寓",note:"",seq:[15,16]},
+    {roomNo:"B1515",type:"双人间",cap:2,area:"中关村青年公寓",note:"",seq:[17,18]},
+    {roomNo:"B1608",type:"双人间",cap:2,area:"中关村青年公寓",note:"",seq:[19,20]},
+    {roomNo:"G218",type:"双人间",cap:2,area:"中关村青年公寓",note:"8月中旬入住",seq:[42,43]},
+    {roomNo:"G219",type:"双人间",cap:2,area:"中关村青年公寓",note:"8月中旬入住",seq:[44,45]},
+    {roomNo:"G520",type:"合住",cap:1,area:"中关村青年公寓",note:"8月中旬·外单位合住",seq:[46]},
+    {roomNo:"G1113",type:"合住",cap:1,area:"中关村青年公寓",note:"8月中旬·外单位合住",seq:[47]},
+    {roomNo:"G1219",type:"双人间",cap:2,area:"中关村青年公寓",note:"8月中旬入住",seq:[48,49]},
+    {roomNo:"G2018",type:"双人间",cap:2,area:"中关村青年公寓",note:"8月中旬入住",seq:[50,51]},
+    {roomNo:"G2020",type:"双人间",cap:2,area:"中关村青年公寓",note:"8月中旬入住",seq:[52,53]},
+    {roomNo:"G2117",type:"双人间",cap:2,area:"中关村青年公寓",note:"8月中旬入住",seq:[54,55]},
+    {roomNo:"G2321",type:"双人间",cap:2,area:"中关村青年公寓",note:"8月中旬入住",seq:[56,57]},
+    {roomNo:"G2322",type:"双人间",cap:2,area:"中关村青年公寓",note:"8月中旬入住",seq:[58,59]},
+    {roomNo:"G2512",type:"双人间",cap:2,area:"中关村青年公寓",note:"8月中旬入住",seq:[60,61]},
+    {roomNo:"G2513",type:"双人间",cap:2,area:"中关村青年公寓",note:"8月中旬入住",seq:[62,63]},
+    {roomNo:"G2514",type:"双人间",cap:2,area:"中关村青年公寓",note:"8月中旬入住",seq:[64,65]},
+    {roomNo:"G2515",type:"合住",cap:1,area:"中关村青年公寓",note:"8月中旬·外单位合住",seq:[66]},
+    {roomNo:"G2517",type:"双人间",cap:2,area:"中关村青年公寓",note:"8月中旬入住",seq:[67,68]},
+    {roomNo:"G2519",type:"双人间",cap:2,area:"中关村青年公寓",note:"8月中旬入住",seq:[69,70]},
+    {roomNo:"G2520",type:"双人间",cap:2,area:"中关村青年公寓",note:"8月中旬入住",seq:[71,72]},
+    {roomNo:"G2523",type:"双人间",cap:2,area:"中关村青年公寓",note:"8月中旬入住",seq:[73,74]},
+    {roomNo:"G2816",type:"双人间",cap:2,area:"中关村青年公寓",note:"8月中旬入住",seq:[75,76]}
+  ],
+  "中关村男": [
+    {roomNo:"C1245",type:"四人间",cap:2,area:"中关村青年公寓",note:"",seq:[21,22]},
+    {roomNo:"F436",type:"三人间",cap:3,area:"中关村青年公寓",note:"",seq:[23,24,25]},
+    {roomNo:"F513",type:"三人间",cap:3,area:"中关村青年公寓",note:"",seq:[26,27,28]},
+    {roomNo:"F733",type:"三人间",cap:3,area:"中关村青年公寓",note:"",seq:[29,30,31]},
+    {roomNo:"F937",type:"三人间",cap:3,area:"中关村青年公寓",note:"",seq:[32,33,34]},
+    {roomNo:"F1129",type:"四人间",cap:4,area:"中关村青年公寓",note:"",seq:[35,36,37,38]},
+    {roomNo:"F1421",type:"三人间",cap:3,area:"中关村青年公寓",note:"",seq:[39,40,41]},
+    {roomNo:"101(315)",type:"三人间",cap:3,area:"315楼",note:"",seq:[154,155,156]},
+    {roomNo:"102(315)",type:"三人间",cap:3,area:"315楼",note:"",seq:[157,158,159]},
+    {roomNo:"109(315)",type:"三人间",cap:3,area:"315楼",note:"",seq:[160,161,162]},
+    {roomNo:"110(315)",type:"三人间",cap:3,area:"315楼",note:"",seq:[163,164,165]},
+    {roomNo:"204(篮球场)",type:"三人间",cap:3,area:"篮球场小楼",note:"",seq:[166,167,168]}
+  ],
+  "怀柔男": [
+    {roomNo:"209卧室2",type:"双人间",cap:2,area:"万户楼",note:"",seq:[77,78]},
+    {roomNo:"211客厅",type:"双人间",cap:2,area:"万户楼",note:"",seq:[79,80]},
+    {roomNo:"211卧室1",type:"双人间",cap:2,area:"万户楼",note:"",seq:[81,82]},
+    {roomNo:"211卧室2",type:"双人间",cap:2,area:"万户楼",note:"",seq:[83,84]},
+    {roomNo:"213卧室2",type:"双人间",cap:2,area:"万户楼",note:"",seq:[85,86]},
+    {roomNo:"214卧室1",type:"双人间",cap:2,area:"万户楼",note:"",seq:[87,88]},
+    {roomNo:"214卧室2",type:"双人间",cap:2,area:"万户楼",note:"",seq:[89,90]},
+    {roomNo:"215卧室2",type:"双人间",cap:2,area:"万户楼",note:"",seq:[91,92]},
+    {roomNo:"217卧室1",type:"双人间",cap:2,area:"万户楼",note:"",seq:[93,94]},
+    {roomNo:"220客厅",type:"双人间",cap:1,area:"万户楼",note:"⚠️已有1人·仅1床位",seq:[95,96]},
+    {roomNo:"220卧室1",type:"双人间",cap:2,area:"万户楼",note:"",seq:[97,98]},
+    {roomNo:"220卧室2",type:"双人间",cap:2,area:"万户楼",note:"",seq:[99,100]},
+    {roomNo:"229卧室1",type:"双人间",cap:2,area:"万户楼",note:"",seq:[102,103]},
+    {roomNo:"229卧室2",type:"双人间",cap:2,area:"万户楼",note:"",seq:[104,105]},
+    {roomNo:"509客厅",type:"四人间",cap:4,area:"万户楼",note:"",seq:[106,107,108,109]},
+    {roomNo:"509卧室1",type:"双人间",cap:2,area:"万户楼",note:"",seq:[110,111]},
+    {roomNo:"509卧室2",type:"双人间",cap:2,area:"万户楼",note:"",seq:[112,113]},
+    {roomNo:"511客厅",type:"双人间",cap:2,area:"万户楼",note:"",seq:[114,115]},
+    {roomNo:"511卧室1",type:"双人间",cap:2,area:"万户楼",note:"",seq:[116,117]},
+    {roomNo:"511卧室2",type:"双人间",cap:2,area:"万户楼",note:"",seq:[118,119]},
+    {roomNo:"513客厅",type:"双人间",cap:2,area:"万户楼",note:"",seq:[122,123]},
+    {roomNo:"513卧室1",type:"双人间",cap:2,area:"万户楼",note:"",seq:[124,125]},
+    {roomNo:"513卧室2",type:"双人间",cap:2,area:"万户楼",note:"",seq:[126,127]},
+    {roomNo:"514客厅",type:"双人间",cap:2,area:"万户楼",note:"",seq:[128,129]},
+    {roomNo:"514卧室1",type:"双人间",cap:2,area:"万户楼",note:"",seq:[130,131]},
+    {roomNo:"811卧室2",type:"双人间",cap:2,area:"万户楼",note:"",seq:[140,141]},
+    {roomNo:"812客厅",type:"双人间",cap:2,area:"万户楼",note:"",seq:[142,143]},
+    {roomNo:"812卧室1",type:"双人间",cap:2,area:"万户楼",note:"",seq:[144,145]},
+    {roomNo:"813卧室1",type:"双人间",cap:2,area:"万户楼",note:"",seq:[146,147]},
+    {roomNo:"814客厅",type:"双人间",cap:2,area:"万户楼",note:"",seq:[148,149]},
+    {roomNo:"814卧室1",type:"双人间",cap:2,area:"万户楼",note:"",seq:[150,151]},
+    {roomNo:"814卧室2",type:"双人间",cap:2,area:"万户楼",note:"",seq:[152,153]}
+  ],
+  "怀柔女": [
+    {roomNo:"228客厅",type:"双人间",cap:1,area:"万户楼",note:"仅1床位",seq:[101]},
+    {roomNo:"512卧室2",type:"双人间",cap:2,area:"万户楼",note:"",seq:[120,121]},
+    {roomNo:"515客厅",type:"四人间",cap:4,area:"万户楼",note:"",seq:[132,133,134,135]},
+    {roomNo:"515卧室1",type:"双人间",cap:2,area:"万户楼",note:"",seq:[136,137]},
+    {roomNo:"515卧室2",type:"双人间",cap:2,area:"万户楼",note:"",seq:[138,139]},
+    {roomNo:"1002(第二栋)",type:"双人间",cap:2,area:"第二栋",note:"",seq:[169,170]},
+    {roomNo:"1006(第二栋)",type:"三人间",cap:3,area:"第二栋",note:"",seq:[171,172,173]},
+    {roomNo:"1101(第二栋)",type:"三人间",cap:3,area:"第二栋",note:"",seq:[174,175,176]},
+    {roomNo:"1104(第二栋)",type:"三人间",cap:3,area:"第二栋",note:"",seq:[177,178,179]},
+    {roomNo:"1105(第二栋)",type:"双+三",cap:2,area:"第二栋",note:"1双+1三·共2床",seq:[180,181]},
+    {roomNo:"1106(第二栋)",type:"三人间",cap:3,area:"第二栋",note:"",seq:[182,183,184]}
+  ]
+};
+
+const PEOPLE = {
+  "怀柔男": [
+    {o:1,n:"周钜朝",d:"天气室",l:1},{o:2,n:"张浩林",d:"仿真室",l:4},{o:3,n:"孙昕垚",d:"系统仿真",l:5},
+    {o:4,n:"杨一凡",d:"天气室",l:9},{o:5,n:"吴鸿宇",d:"运控部",l:11},{o:6,n:"宋健",d:"探测室",l:12},
+    {o:7,n:"鞠瀚锋",d:"微波室",l:15},{o:8,n:"贾锦成",d:"系统室",l:16},{o:9,n:"王逸飞",d:"电子室",l:23},
+    {o:10,n:"张杰轩",d:"系统室",l:24},{o:11,n:"牛全奋",d:"微波室",l:26},{o:12,n:"王鑫博",d:"微波室",l:28},
+    {o:13,n:"常旭晖",d:"探测室",l:31},{o:14,n:"杨超然",d:"微波室",l:34},{o:15,n:"刘坤鹏",d:"系统室",l:36},
+    {o:16,n:"童杰",d:"系统室",l:39},{o:17,n:"艾克拜尔·艾尔肯",d:"集成室",l:40},{o:18,n:"严锦濠",d:"运控部",l:49},
+    {o:19,n:"许卫",d:"微波室",l:53},{o:20,n:"李辰晔",d:"系统室",l:56},{o:21,n:"李焕然",d:"系统室",l:58},
+    {o:22,n:"宋宇",d:"电子室",l:60},{o:23,n:"王前浩",d:"系统室",l:65},{o:24,n:"宋祥伟",d:"系统室",l:67},
+    {o:25,n:"顾仁宁",d:"系统室",l:68},{o:26,n:"马瑞雄",d:"系统室",l:69},{o:27,n:"付梓桉",d:"天气室",l:71},
+    {o:28,n:"王磊",d:"运控部",l:73},{o:29,n:"陈润琛",d:"运控",l:74},{o:30,n:"黄枝晟",d:"微波室",l:77},
+    {o:31,n:"廖沁宇",d:"天气室",l:78},{o:32,n:"刘昊安",d:"系统室",l:86},{o:33,n:"张鹏远",d:"电子室",l:92},
+    {o:34,n:"苏智博",d:"仿真室",l:96},{o:35,n:"张同辉",d:"系统室",l:98},{o:36,n:"杜一凡",d:"天气室",l:99},
+    {o:37,n:"沈东臻",d:"系统室",l:104},{o:38,n:"常健康",d:"系统室",l:106},{o:39,n:"蓝浩宇",d:"天气室",l:109},
+    {o:40,n:"汪子杰",d:"探测室",l:110},{o:41,n:"刘树",d:"系统室",l:111},{o:42,n:"盛东",d:"微波室",l:113},
+    {o:43,n:"张鑫月",d:"系统室",l:116},{o:44,n:"何杰",d:"系统室",l:117}
+  ],
+  "怀柔女": [
+    {o:1,n:"张文杰",d:"集成室",l:13},{o:2,n:"管昊琛",d:"运控部",l:30},{o:3,n:"周倩",d:"系统室",l:42},
+    {o:4,n:"范红乐",d:"系统室",l:44},{o:5,n:"王怡雯",d:"仿真室",l:66},{o:6,n:"李阳苗",d:"数据室",l:70},
+    {o:7,n:"谭湘怡",d:"系统室",l:72},{o:8,n:"金晨",d:"系统室",l:82},{o:9,n:"任坤垚",d:"天气室",l:91},
+    {o:10,n:"杜灿灿",d:"系统室",l:97},{o:11,n:"马鑫瞳",d:"系统室",l:114}
+  ],
+  "中关村男": [
+    {o:1,n:"马培凡",d:"天气室",l:3},{o:2,n:"孙士奇",d:"微波室",l:7},{o:3,n:"胡凯",d:"探测室",l:14},
+    {o:4,n:"蔡晓阳",d:"探测室",l:19},{o:5,n:"王铄",d:"微波室",l:20},{o:6,n:"陈能藏",d:"微波室",l:22},
+    {o:7,n:"刘璟鹏",d:"天气室",l:25},{o:8,n:"周鹏程",d:"天气室",l:48},{o:9,n:"吴昊天",d:"天气室",l:51},
+    {o:10,n:"李玉鑫",d:"系统室",l:52},{o:11,n:"薛天宇",d:"天气室",l:55},{o:12,n:"何敏健",d:"天气室",l:61},
+    {o:13,n:"刘嘉乐",d:"微波室",l:83},{o:14,n:"赵春阳",d:"系统室",l:88},{o:15,n:"郭华昊",d:"微波室",l:89},
+    {o:16,n:"刘晨",d:"微波室",l:93},{o:17,n:"何井洋",d:"天气室",l:94},{o:18,n:"聂宇轩",d:"",l:101},
+    {o:19,n:"鄢翰桢",d:"微波",l:107},{o:20,n:"韩斌斌",d:"探测室",l:112}
+  ],
+  "中关村女": [
+    {o:1,n:"孙婷璟",d:"天气室",l:2},{o:2,n:"顾洁钰",d:"探测室",l:6},{o:3,n:"范苗苗",d:"系统室",l:8},
+    {o:4,n:"张卉子",d:"天气室",l:10},{o:5,n:"蔡婧婧",d:"微波室",l:17},{o:6,n:"楠丁",d:"",l:18},
+    {o:7,n:"任宸荣",d:"天气室",l:21},{o:8,n:"陈灏瀚",d:"微波室",l:27},{o:9,n:"杨金月",d:"",l:29},
+    {o:10,n:"李爽",d:"天气室",l:32},{o:11,n:"卞砚然",d:"探测室",l:33},{o:12,n:"杜安琪",d:"微波室",l:35},
+    {o:13,n:"邹齐",d:"天气室",l:37},{o:14,n:"丁琪芮",d:"系统室",l:38},{o:15,n:"余欣宇",d:"天气室",l:41},
+    {o:16,n:"秦雅倩",d:"天气室",l:43},{o:17,n:"朱佳慧",d:"智能室",l:45},{o:18,n:"郭秋叶",d:"系统室",l:46},
+    {o:19,n:"张煜琛",d:"天气室",l:47},{o:20,n:"陈艺",d:"微波室",l:50},{o:21,n:"刘润一",d:"系统室",l:54},
+    {o:22,n:"吕春阳",d:"",l:57},{o:23,n:"史诸雅",d:"天气室",l:59},{o:24,n:"王琮睿",d:"微波室",l:62},
+    {o:25,n:"金凤",d:"",l:63},{o:26,n:"陈宇彤",d:"微波室",l:64},{o:27,n:"李雨寒",d:"天气室",l:75},
+    {o:28,n:"杜紫娟",d:"天气室",l:76},{o:29,n:"吕宁芃",d:"探测室",l:79},{o:30,n:"郑依卓",d:"系统室",l:80},
+    {o:31,n:"许佳静",d:"天气室",l:81},{o:32,n:"张艺宁",d:"微波室",l:84},{o:33,n:"杨翠珊",d:"微波室",l:85},
+    {o:34,n:"罗淑兰",d:"天气室",l:87},{o:35,n:"陈文茜",d:"",l:90},{o:36,n:"郑威夷",d:"天气室",l:95},
+    {o:37,n:"杨露洋",d:"",l:100},{o:38,n:"薛颖慧",d:"探测室",l:102},{o:39,n:"陈一涵",d:"天气室",l:103},
+    {o:40,n:"林欣欣",d:"微波室",l:105},{o:41,n:"史晨雨",d:"",l:108},{o:42,n:"周芷瑜",d:"探测室",l:115}
+  ]
+};
+
+// =================== STATE ===================
+const SK='dorm2026_v2';
+let sel={}; // {cat: {roomNo: [{name,lotteryNo,order,time}]}}
+let log=[];
+let activeTab='怀柔男';
+
+function load(){try{const d=JSON.parse(localStorage.getItem(SK));if(d){sel=d.sel||{};log=d.log||[];}}catch(e){}for(const c of Object.keys(ROOMS)){if(!sel[c])sel[c]={};}}
+function save(){localStorage.setItem(SK,JSON.stringify({sel,log}));}
+load();
+
+// =================== HELPERS ===================
+function occ(cat,rn){return (sel[cat]&&sel[cat][rn])?sel[cat][rn]:[];}
+function room(cat,rn){return ROOMS[cat].find(r=>r.roomNo===rn);}
+function personByLottery(cat,l){return PEOPLE[cat].find(p=>p.l===l);}
+function nextOrder(cat){const people=PEOPLE[cat];const done=new Set();for(const rooms of Object.values(sel[cat]||{})){for(const o of rooms)done.add(o.order);}for(const p of people){if(!done.has(p.o))return p.o;}return null;}
+function roomStatus(cat,r){const o=occ(cat,r.roomNo).length;return o===0?'avail':o<r.cap?'partial':'full';}
+function fmtTime(){const n=new Date();return n.getHours().toString().padStart(2,'0')+':'+n.getMinutes().toString().padStart(2,'0');}
+
+function getStats(){
+  const s={};let totalB=0,totalO=0;
+  for(const c of Object.keys(ROOMS)){
+    const rooms=ROOMS[c];let o=0;rooms.forEach(r=>{o+=occ(c,r.roomNo).length;});
+    const b=rooms.reduce((s,r)=>s+r.cap,0);
+    s[c]={b,o};totalB+=b;totalO+=o;
+  }
+  s._total={b:totalB,o:totalO};return s;
+}
+
+// =================== RENDER ===================
+const CAT_ORDER=['怀柔男','怀柔女','中关村男','中关村女'];
+const CAT_CONF={
+  '怀柔男':{emoji:'🏢',cls:'hzm',sub:'万户楼 · 44人 · 66床'},
+  '怀柔女':{emoji:'🏢',cls:'hzf',sub:'万户楼/第二栋 · 11人 · 27床'},
+  '中关村男':{emoji:'🏙️',cls:'zgm',sub:'青年公寓C/F/315楼/篮球场小楼 · 20人 · 36床'},
+  '中关村女':{emoji:'🏙️',cls:'zgf',sub:'青年公寓A/B/G · 42人 · 55床'}
+};
+const TAB_IDX=['t0','t1','t2','t3'];
+
+function render(){
+  renderStats();renderTabs();renderZone();renderLog();updateRemoveSelect();
+}
+
+function renderStats(){
+  const s=getStats();
+  document.getElementById('statsBar').innerHTML=CAT_ORDER.map((c,i)=>{
+    const d=CAT_CONF[c],st=s[c];
+    return `<div class="st ${d.cls}" onclick="switchTab(${i})"><div class="l">${d.emoji} ${c}</div><div class="n">${st.b-st.o}</div><div class="t">剩余/总${st.b}</div></div>`;
+  }).join('');
+}
+
+function renderTabs(){
+  document.getElementById('tabs').innerHTML=CAT_ORDER.map((c,i)=>{
+    return `<div class="tab ${TAB_IDX[i]} ${c===activeTab?'on':''}" onclick="switchTab(${i})">${c}</div>`;
+  }).join('');
+}
+
+function switchTab(i){activeTab=CAT_ORDER[i];render();}
+
+function renderZone(){
+  const ct=document.getElementById('zoneContent');
+  let html='';
+  for(const c of CAT_ORDER){
+    const d=CAT_CONF[c];const rooms=ROOMS[c];const people=PEOPLE[c];
+    const totalBed=rooms.reduce((s,r)=>s+r.cap,0);
+    const occBed=rooms.reduce((s,r)=>s+occ(c,r.roomNo).length,0);
+    
+    // Room cards
+    const rcards=rooms.map(r=>{
+      const o=occ(c,r.roomNo);const st=roomStatus(c,r);
+      const pct=r.cap>0?Math.round(o.length/r.cap*100):0;
+      const fillCls=st==='avail'?'fill-a':st==='partial'?'fill-p':'fill-f';
+      const dot=st==='full'?'🔴':st==='partial'?'🟡':'🟢';
+      const names=o.map(x=>x.name).join('、');
+      return `<div class="rcard ${st}" onclick="showRD('${c}','${r.roomNo}')">
+        <div class="rno">${dot} ${r.roomNo}</div>
+        <div class="rtype">${r.type} · ${o.length}/${r.cap}</div>
+        ${r.note?`<div class="rnote">${r.note}</div>`:''}
+        <div class="obar"><div class="fill" style="width:${pct}%;background:${st==='avail'?'var(--success)':st==='partial'?'var(--warning)':'#d9d9d9'}"></div></div>
+        ${names?`<div class="rnames">👤 ${names}</div>`:''}
+      </div>`;
+    }).join('');
+
+    // People list
+    const no=nextOrder(c);
+    const plist=people.map(p=>{
+      const isSel=people.filter(pp=>pp.o<=p.o).every(pp=>{
+        for(const rooms of Object.values(sel[c]||{})){
+          if(rooms.some(o=>o.order===pp.o))return true;
+        }
+        return pp.o>=p.o;
+      });
+      // Check if this person has selected
+      let hasSelected=false;let selectedRoom='';
+      for(const[rn,occupants]of Object.entries(sel[c]||{})){
+        if(occupants.some(o=>o.order===p.o)){hasSelected=true;selectedRoom=rn;break;}
+      }
+      const isNext=p.o===no;
+      const cls=hasSelected?'done selected':isNext?'style="background:#fffbe6"':'';
+      return `<div class="pi ${hasSelected?'selected':''} ${hasSelected?'done':''}" ${isNext&&!hasSelected?'style="background:#fffbe6;border-left:3px solid var(--primary)"':''}>
+        <div class="po">${p.o}</div>
+        <div class="pn"><strong>${p.n}</strong> ${p.d?'<span style="color:var(--text2);font-size:10px">'+p.d+'</span>':''}</div>
+        <div class="ps">${hasSelected?'✅ '+selectedRoom:(isNext?'👉 等待选房':'抽签'+p.l+'号')}</div>
+      </div>`;
+    }).join('');
+
+    html+=`<div class="sec vis">
+      <div class="sec-hd" style="background:${c==='怀柔男'?'#bae0ff':c==='怀柔女'?'#ffd6e7':c==='中关村男'?'#d9f7be':'#ffe7ba'}">${d.emoji} ${c} <span class="badge">${occBed}/${totalBed} 已选 · ${PEOPLE[c].length}人</span></div>
+      <div class="rgrid">${rcards}</div>
+      <div class="plist">
+        <div class="pl-hd" onclick="this.nextElementSibling.classList.toggle('open')">📋 选房顺序（${PEOPLE[c].length}人）<span>${no?'下一位: '+people.find(p=>p.o===no)?.n:'✅ 全部完成'}</span></div>
+        <div class="pl-body">${plist}</div>
+      </div>
+    </div>`;
+  }
+  ct.innerHTML=html;
+}
+
+function renderLog(){
+  const ll=document.getElementById('logList');
+  const ub=document.getElementById('undoBtn');
+  if(!log.length){ll.innerHTML='<div class="li" style="justify-content:center;color:#999">暂无记录</div>';ub.style.display='none';return;}
+  ub.style.display='inline';
+  ll.innerHTML=log.slice(-30).reverse().map(l=>`<div class="li"><span>${l.name}(${l.lotteryNo}号) → ${l.cat} ${l.roomNo}</span><span class="lt">${l.time}</span></div>`).join('');
+}
+
+function updateRemoveSelect(){
+  const s=document.getElementById('removeSelect');
+  let h='<option value="">-- 选择已选人员 --</option>';
+  for(const[c,rooms]of Object.entries(sel)){
+    for(const[rn,occ]of Object.entries(rooms)){
+      occ.forEach((o,i)=>{
+        h+=`<option value="${c}|${rn}|${i}">${o.name}(${o.lotteryNo}号) - ${c} ${rn}</option>`;
+      });
+    }
+  }
+  s.innerHTML=h;
+}
+
+// =================== ROOM DETAIL ===================
+function showRD(cat,rn){
+  const r=room(cat,rn);const o=occ(cat,rn);
+  const st=roomStatus(cat,r);
+  const people=PEOPLE[cat];
+  
+  let html=`<h4>${r.roomNo}</h4>
+    <div class="rdinfo">📍 ${r.area} · ${r.type} · 可住${r.cap}人 · 已选${o.length}/${r.cap}
+    ${r.note?'<br>⚠️ '+r.note:''}</div>`;
+  
+  if(o.length){
+    html+=`<div class="rdocc">`+o.map(x=>`<div class="rdo"><span>👤 ${x.name}（第${x.order}位 · ${x.lotteryNo}号）</span><span class="lt">${x.time}</span></div>`).join('')+`</div>`;
+  } else {
+    html+=`<div class="rdempty">暂无入住</div>`;
+  }
+  
+  // Show available slots
+  const avail=r.cap-o.length;
+  if(avail>0){
+    html+=`<div style="font-size:11px;color:var(--success);margin-bottom:8px">✅ 还剩${avail}个空位</div>`;
+  } else {
+    html+=`<div style="font-size:11px;color:var(--danger);margin-bottom:8px">❌ 已满</div>`;
+  }
+  
+  html+=`<div class="brow"><button class="btn bg" onclick="closeRD()">关闭</button>`;
+  
+  // Quick select button
+  if(avail>0){
+    html+=`<button class="btn bp" onclick="quickSel('${cat}','${rn}')">✏️ 为某人选此房间</button>`;
+  }
+  html+=`</div>`;
+  
+  document.getElementById('rdBox').innerHTML=html;
+  document.getElementById('rdOverlay').classList.add('show');
+}
+function closeRD(){document.getElementById('rdOverlay').classList.remove('show');}
+
+function quickSel(cat,rn){
+  closeRD();
+  document.getElementById('zoneSelect').value=cat;
+  updateRooms();
+  document.getElementById('roomSelect').value=rn;
+  showRoomInfo();
+  openModal();
+}
+
+// =================== MODAL ===================
+function openModal(){document.getElementById('modalOverlay').classList.add('show');updateRemoveSelect();}
+function closeModal(){
+  document.getElementById('modalOverlay').classList.remove('show');
+  document.getElementById('lotteryNo').value='';
+  document.getElementById('personName').value='';
+  document.getElementById('personInfo').textContent='';
+  document.getElementById('zoneSelect').value='';
+  document.getElementById('roomSelect').innerHTML='<option value="">-- 先选择区域 --</option>';
+  document.getElementById('roomInfo').textContent='';
+  document.getElementById('turnWarning').style.display='none';
+}
+
+function autoFill(){
+  const v=parseInt(document.getElementById('lotteryNo').value);
+  if(!v)return;
+  document.getElementById('personInfo').textContent='';
+  document.getElementById('zoneSelect').value='';
+  document.getElementById('turnWarning').style.display='none';
+  
+  for(const cat of CAT_ORDER){
+    const p=personByLottery(cat,v);
+    if(p){
+      document.getElementById('personName').value=p.n;
+      document.getElementById('personInfo').innerHTML=`✅ ${cat} · 第${p.o}位 · ${p.n}${p.d?' · '+p.d:''}`;
+      document.getElementById('zoneSelect').value=cat;
+      updateRooms();
+      checkTurn(cat,p);
+      return;
+    }
+  }
+  document.getElementById('personInfo').innerHTML='<span style="color:var(--danger)">❌ 未找到该序号对应人员</span>';
+}
+
+function checkTurn(cat,p){
+  const no=nextOrder(cat);
+  const warn=document.getElementById('turnWarning');
+  if(p.o===no){
+    warn.style.display='block';warn.style.color='var(--success)';
+    warn.textContent=`✅ 轮到你了！你是${cat}第${p.o}位选房人`;
+  } else {
+    const ahead=PEOPLE[cat].filter(pp=>pp.o<no&&!isPersonSelected(cat,pp.o));
+    warn.style.display='block';warn.style.color='var(--danger)';
+    warn.textContent=`⏳ 还有${ahead.length}人未选（第${ahead[0]?.o}位${ahead[0]?.n}还没选），请等待`;
+  }
+}
+
+function isPersonSelected(cat,order){
+  for(const[rn,occupants]of Object.entries(sel[cat]||{})){
+    if(occupants.some(o=>o.order===order))return true;
+  }
+  return false;
+}
+
+function updateRooms(){
+  const cat=document.getElementById('zoneSelect').value;
+  const s=document.getElementById('roomSelect');
+  if(!cat||!ROOMS[cat]){s.innerHTML='<option value="">-- 先选择区域 --</option>';return;}
+  s.innerHTML='<option value="">-- 选择房间 --</option>'+ROOMS[cat].map(r=>{
+    const o=occ(cat,r.roomNo).length;
+    const full=o>=r.cap;
+    return `<option value="${r.roomNo}" ${full?'disabled':''}>${r.roomNo} - ${r.type}${full?' [满]':o?' ['+o+'/'+r.cap+']':' [空]'}${r.note?' ('+r.note+')':''}</option>`;
+  }).join('');
+}
+
+function showRoomInfo(){
+  const cat=document.getElementById('zoneSelect').value;
+  const rn=document.getElementById('roomSelect').value;
+  if(!cat||!rn){document.getElementById('roomInfo').textContent='';return;}
+  const r=room(cat,rn);const o=occ(cat,rn);
+  document.getElementById('roomInfo').innerHTML=`📍 ${r.area} · ${r.type} · 可住${r.cap}人 · 已选${o.length}人${r.note?'<br>⚠️ '+r.note:''}`;
+}
+
+function confirmSel(){
+  const ln=parseInt(document.getElementById('lotteryNo').value);
+  const nm=document.getElementById('personName').value.trim();
+  const cat=document.getElementById('zoneSelect').value;
+  const rn=document.getElementById('roomSelect').value;
+  
+  if(!ln||ln<1||ln>184){toast('请输入有效序号');return;}
+  if(!nm){toast('请输入姓名');return;}
+  if(!cat||!rn){toast('请选择区域和房间');return;}
+  
+  const r=room(cat,rn);const o=occ(cat,rn);
+  if(o.length>=r.cap){toast('该房间已满');return;}
+  
+  // Check if already selected
+  for(const[c,rooms]of Object.entries(sel)){
+    for(const[rn2,occ2]of Object.entries(rooms)){
+      if(occ2.some(x=>x.lotteryNo===ln)){toast(`${nm}(${ln}号)已选过 ${c} ${rn2}，请先移除`);return;}
+    }
+  }
+  
+  const p=personByLottery(cat,ln);
+  if(!p){toast('未找到该序号人员');return;}
+  
+  if(!sel[cat])sel[cat]={};
+  if(!sel[cat][rn])sel[cat][rn]=[];
+  sel[cat][rn].push({name:nm,lotteryNo:ln,order:p.o,time:fmtTime()});
+  log.push({cat,roomNo:rn,name:nm,lotteryNo:ln,time:fmtTime()});
+  save();
+  closeModal();render();
+  toast(`✅ ${nm}(${ln}号) → ${cat} ${rn}`);
+}
+
+function removeSel(){
+  const v=document.getElementById('removeSelect').value;
+  if(!v){toast('请选择要移除的人员');return;}
+  const[cat,rn,idx]=v.split('|');
+  const i=parseInt(idx);
+  if(!sel[cat]||!sel[cat][rn]||i>=sel[cat][rn].length)return;
+  const rm=sel[cat][rn].splice(i,1)[0];
+  if(!sel[cat][rn].length)delete sel[cat][rn];
+  log.push({cat,roomNo:rn,name:rm.name,lotteryNo:rm.lotteryNo,time:fmtTime(),action:'remove'});
+  save();render();
+  toast(`🗑️ 已移除 ${rm.name}(${rm.lotteryNo}号)`);
+}
+
+function undoLast(){
+  if(!log.length)return;
+  const l=log.pop();
+  if(l.action!=='remove'){
+    const idx=(sel[l.cat]&&sel[l.cat][l.roomNo]||[]).findIndex(x=>x.lotteryNo===l.lotteryNo);
+    if(idx>=0){sel[l.cat][l.roomNo].splice(idx,1);if(!sel[l.cat][l.roomNo].length)delete sel[l.cat][l.roomNo];}
+  }
+  save();render();toast(`↩ 已撤销`);
+}
+
+// =================== EXPORT/IMPORT ===================
+function exportState(){
+  try{
+    const data=JSON.stringify({sel,log});
+    const compressed=btoa(unescape(encodeURIComponent(data)));
+    // Copy to clipboard
+    navigator.clipboard.writeText(compressed).then(()=>toast('✅ 状态已复制到剪贴板'));
+  }catch(e){toast('导出失败');}
+}
+
+function importState(){document.getElementById('importOverlay').classList.add('show');}
+function closeImport(){document.getElementById('importOverlay').classList.remove('show');document.getElementById('importText').value='';}
+function doImport(){
+  try{
+    const raw=document.getElementById('importText').value.trim();
+    if(!raw){toast('请粘贴状态字符串');return;}
+    const data=JSON.parse(decodeURIComponent(escape(atob(raw))));
+    if(data.sel)sel=data.sel;
+    if(data.log)log=data.log;
+    save();render();closeImport();toast('✅ 状态已导入');
+  }catch(e){toast('导入失败：格式无效');}
+}
+
+// =================== TOAST ===================
+let tt;
+function toast(m){const t=document.getElementById('toast');t.textContent=m;t.classList.add('show');clearTimeout(tt);tt=setTimeout(()=>t.classList.remove('show'),2000);}
+
+// =================== INIT ===================
+render();
+</script>
+</body>
+</html>
