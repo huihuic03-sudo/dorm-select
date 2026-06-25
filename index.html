@@ -184,13 +184,13 @@ body{font-family:-apple-system,BlinkMacSystemFont,'PingFang SC','Microsoft YaHei
     <div>
       <button class="ubtn" onclick="exportState()" style="color:var(--primary)">📤 导出状态</button>
       <button class="ubtn" onclick="importState()" style="margin-left:6px;color:var(--primary)">📥 导入状态</button>
-      <button class="ubtn" onclick="undoLast()" id="undoBtn" style="display:none;margin-left:6px">↩ 撤销</button>
+      <button class="ubtn" onclick="adminGuard(()=>undoLast())" id="undoBtn" style="display:none;margin-left:6px">↩ 撤销</button>
     </div>
   </div>
   <div class="ll" id="logList"><div class="li" style="justify-content:center;color:#999">暂无记录</div></div>
 </div>
 
-<button class="fab" onclick="openModal()">✏️</button>
+<button class="fab" onclick="adminAction()">✏️</button>
 
 <!-- Selection Modal -->
 <div class="mover" id="modalOverlay" onclick="if(event.target===this)closeModal()">
@@ -222,7 +222,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,'PingFang SC','Microsoft YaHei
     <div style="margin-top:16px;padding-top:12px;border-top:1px solid var(--border)">
       <label style="color:var(--danger)">🗑️ 移除选房</label>
       <select id="removeSelect" style="margin-bottom:6px"><option value="">-- 选择已选人员 --</option></select>
-      <button class="btn bd" onclick="removeSel()" style="width:100%">确认移除</button>
+      <button class="btn bd" onclick="adminGuard(()=>removeSel())" style="width:100%">确认移除</button>
     </div>
   </div>
 </div>
@@ -733,6 +733,22 @@ function doImport(){
 // =================== TOAST ===================
 let tt;
 function toast(m){const t=document.getElementById('toast');t.textContent=m;t.classList.add('show');clearTimeout(tt);tt=setTimeout(()=>t.classList.remove('show'),2000);}
+
+// =================== ADMIN ===================
+const ADMIN_PWD='2026fangjian'; // 管理密码，可修改
+let isAdmin=false;
+function adminAction(){
+  if(isAdmin){openModal();return;}
+  const pwd=prompt('🔒 请输入管理密码：');
+  if(pwd===ADMIN_PWD){isAdmin=true;toast('🔓 管理员模式已开启');openModal();}
+  else if(pwd!==null){toast('❌ 密码错误');}
+}
+function adminGuard(fn){
+  if(isAdmin){fn();return;}
+  const pwd=prompt('🔒 请输入管理密码：');
+  if(pwd===ADMIN_PWD){isAdmin=true;fn();}
+  else if(pwd!==null){toast('❌ 密码错误');}
+}
 
 // =================== INIT ===================
 render();
